@@ -1,0 +1,8 @@
+# gitignore to ignore data
+
+# Ignore raw data
+raw-data
+
+# Ignore data that has been created
+asurv/*
+gps/

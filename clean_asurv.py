@@ -60,6 +60,8 @@ def read_asurv(years_through_2011=10, temporal_res='weekly'):
     bin_names = {i + 1: f'{all_dates[i].date()}_to_{all_dates[i + 1].date()}' for i in range(len(all_dates) - 1)}
     gdf[f'{DATE_NAME_TRANSLATOR[temporal_res]}_name'] = gdf[DATE_NAME_TRANSLATOR[temporal_res]].map(bin_names)
 
+    gdf['counts'] = gdf['WHITE'].fillna(0) + gdf['JUVE'].fillna(0)  + gdf['UNK'].fillna(0) 
+
     return gdf
 
 
@@ -76,6 +78,10 @@ if __name__ == '__main__':
     # END PARAMS
 
     asurv_gdf = read_asurv(years_through_2011, temporal_res=temporal_res)
+    print(asurv_gdf)
+    print(asurv_gdf.columns)
+    sys.exit(1)
+
     all_gdfs = []
     
     for tstep in np.sort(asurv_gdf[f'{DATE_NAME_TRANSLATOR[temporal_res]}_name'].unique()):

@@ -66,7 +66,7 @@ def generate_grid(bbox, spacing, crs):
 if __name__ == '__main__':
     
     # BEGIN PARAMETERS
-    box_length_m = 250
+    box_length_m = 500
     temporal_res = 'weekly'
     years_cut_from_back = 4
     keep_geometry_col = False
@@ -96,6 +96,9 @@ if __name__ == '__main__':
     # add names for weeks for data clarity
     bin_names = {i + 1: f'{all_dates[i].date()}_to_{all_dates[i + 1].date()}' for i in range(len(all_dates) - 1)}
     gps_gdf[f'{DATE_NAME_TRANSLATOR[temporal_res]}_name'] = gps_gdf[DATE_NAME_TRANSLATOR[temporal_res]].map(bin_names)
+
+    print(gps_gdf)
+    sys.exit(1)
 
     # match the GPS data to only fit in the aransas boxes
     boxes_in_aransas = gpd.sjoin(gps_gdf, grid_gdf, how='left', predicate='within')
