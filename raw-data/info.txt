@@ -1,1 +1,3 @@
-raw data directory
+Raw data directory. Download data from README links and put them here
+
+boxes_total_bounds.txt contains the bounds of the Aransas preserve in EPSG:26914

@@ -13,17 +13,17 @@ Sources:
 Directories & Files:
 - raw-data: contains all raw data listed in sources
     - WHCR_locations_gps.csv: locations from the gps tracking data
-    - asurv_1950_to_2011: directory with asurv data and info
+    - asurv_1950_to_2011: directory with asurv data and info (DOESNT EXIST IN GITHUB REPO, MUST ADD)
         - WHCR_Aerial_Observations_1950_2011.txt: flyover data
         - WHCR_Aerial_Observations_1950-2011_metadata.pdf: pdf of metadata
-- clean_asurv.py: file to get asurv data.
-- clean_gps.py: file to clean gps data.
+- clean_asurv.py: file to get asurv data. Contains function that converts raw data to point-based event data (with cols x, y, count, timestep)
+- clean_gps.py: file to clean gps data. Contains function that converts raw data to point-based event data (with cols x, y, count, timestep)
+- points_in_boxes.py: contains function - used in both clean_asurv and clean_gps - that converts raw point data to binned box data
 
 How to run program:
 - First, add the data to raw-data. Add the folder from the asurv download link, and the file in the gps link (both in "sources" section) to the raw-data folder. You should have a file for gps and a folder containing the data and metadata for
 asurv (aerial survey data).
-- clean_asurv.py: at the top of the file, you will find a list of parameters you can set and change. Change them in 
-__main__ to your liking, and run the script.
+- clean_asurv.py: at the top of __main__, you will find a list of parameters you can set and change. Change them in __main__ to your liking, and run the script.
     - Running this file with your specifications will output a directory inside "asurv" named by yuor specifications
         ({start_year}_to_{end_year}_{box_length_meters}: so it will look like 2009_to_2014_500M, or the like). 
         This directory will contain:
@@ -39,7 +39,6 @@ __main__ to your liking, and run the script.
         - info directory with information about the geometry (shapefiles and other files related)
 - clean_gps.py: same clean_asurv, there is a description of parameters you can manually set in __main__. Manually set them and then run the program with any compiler.
 
-I kept one such output in the zip file (in gps folder) so you can see what an output looks like.
 
 Description of output data:
 - asurv: data from whenever specified in parameter until 2011. Data will be sparse relative to gps data. 

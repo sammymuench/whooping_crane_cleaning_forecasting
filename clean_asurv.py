@@ -4,6 +4,8 @@ from shapely.geometry import Polygon
 import numpy as np
 import geopandas as gpd
 import os
+from points_to_boxes import points_to_boxes
+# from points_to_boxes import points_to_boxes
 
 """
 OPTIONS FOR PARAMETERS:
@@ -37,8 +39,33 @@ DATE_NAME_TRANSLATOR = {
     'monthly': 'month'
 }
 
+# meters per degree lat or long
+METERS_PER_DEGREE = 111111
 
-def read_asurv(years_through_2011=10, temporal_res='weekly'):
+# Function to generate a grid of boxes
+def generate_grid(bbox, spacing, crs):
+    """
+    Generate box grid based on min x, min y, max x, and max y (LONG/LAT)
+    Spacing: Space between each box in degrees
+    Crs: Coordinate reference system
+    """
+    METERS_PER_DEGREE = 111111
+
+    if crs.to_string() == 'EPSG:26914':
+        spacing = spacing * METERS_PER_DEGREE
+
+    minx, miny, maxx, maxy = bbox
+    x_coords = np.arange(minx, maxx, spacing)
+    y_coords = np.arange(miny, maxy, spacing)
+
+    grid = []
+    for x in x_coords:
+        for y in y_coords:
+            grid.append(Polygon([(x, y), (x + spacing, y), (x + spacing, y + spacing), (x, y + spacing), (x, y)]))
+    return gpd.GeoDataFrame({'geometry': grid}, crs=crs)
+
+
+def read_asurv(years_through_2011=10, temporal_res='weekly', keep_geometry_col=True):
     """
     Reads raw asurv data
     Assigns each observation into a temporal bucket based on temporal resolution
@@ -60,17 +87,20 @@ def read_asurv(years_through_2011=10, temporal_res='weekly'):
     bin_names = {i + 1: f'{all_dates[i].date()}_to_{all_dates[i + 1].date()}' for i in range(len(all_dates) - 1)}
     gdf[f'{DATE_NAME_TRANSLATOR[temporal_res]}_name'] = gdf[DATE_NAME_TRANSLATOR[temporal_res]].map(bin_names)
 
-    gdf['counts'] = gdf['WHITE'].fillna(0) + gdf['JUVE'].fillna(0)  + gdf['UNK'].fillna(0) 
+    gdf['count'] = gdf['WHITE'].fillna(0) + gdf['JUVE'].fillna(0)  + gdf['UNK'].fillna(0) 
 
-    return gdf
+    if keep_geometry_col:
+        columns_of_interest = ['date', 'week', 'week_name', 'X', 'Y', 'count', 'geometry']
+    else:
+        columns_of_interest = ['date', 'week', 'week_name', 'X', 'Y', 'count']
 
-
+    return gdf[columns_of_interest]
 
 
 if __name__ == '__main__':
 
     # BEGIN PARAMS
-    years_through_2011 = 30
+    years_through_2011 = 5
     temporal_res = 'weekly'
     box_length_m = 500
     complete_idx_square = True
@@ -78,118 +108,10 @@ if __name__ == '__main__':
     # END PARAMS
 
     asurv_gdf = read_asurv(years_through_2011, temporal_res=temporal_res)
-    print(asurv_gdf)
-    print(asurv_gdf.columns)
-    sys.exit(1)
-
-    all_gdfs = []
-    
-    for tstep in np.sort(asurv_gdf[f'{DATE_NAME_TRANSLATOR[temporal_res]}_name'].unique()):
-        
-        filtered_gdf = asurv_gdf[asurv_gdf[f'{DATE_NAME_TRANSLATOR[temporal_res]}_name'] == tstep]
-        # Calculate the bounding box of the data
-        min_x, min_y, max_x, max_y = asurv_gdf.total_bounds
-
-        # Create a grid
-        # MAKE SURE we are in the CRS that measures by meters, not lat/long
-        assert (filtered_gdf.crs.to_string() == 'EPSG:26914')
-        grid_cells = []
-        for x in np.arange(min_x, max_x, box_length_m):
-            for y in np.arange(min_y, max_y, box_length_m):
-                grid_cells.append(Polygon([
-                    (x, y),
-                    (x + box_length_m, y),
-                    (x + box_length_m, y + box_length_m),
-                    (x, y + box_length_m)
-                ]))
-
-        # Create a GeoDataFrame for the grid
-        full_grid = gpd.GeoDataFrame({'geometry': grid_cells}, crs=filtered_gdf.crs)
-
-        # Perform a spatial join to count the number of points in each grid cell
-        joined = gpd.sjoin(filtered_gdf, full_grid, how='left', predicate='within')
-        counts = joined.groupby('index_right').size()
-
-        # Add the counts to the grid GeoDataFrame
-        full_grid['counts'] = counts
-        full_grid[f'{DATE_NAME_TRANSLATOR[temporal_res]}_id'] = filtered_gdf[f'{DATE_NAME_TRANSLATOR[temporal_res]}'].unique()[0]
-        full_grid[f'{DATE_NAME_TRANSLATOR[temporal_res]}_name'] = tstep
-
-        full_grid['counts'].fillna(0, inplace=True)
-        print(f"unique counts for {tstep}: {full_grid['counts'].unique()}")
-        all_gdfs.append(full_grid)
-    
-    combined_gdf = pd.concat(all_gdfs)
-    print('shape of combined GDF', combined_gdf.shape[0])
-    
-    # create lat long columns and save to CSV
-    combined_gdf.set_index([f'{DATE_NAME_TRANSLATOR[temporal_res]}_id', 'geometry'], drop=True, inplace=True)
-    
-    combined_gdf['geometry_col'] = combined_gdf.index.get_level_values(1)
-    combined_gdf = combined_gdf.set_geometry('geometry_col')
-    
-    centers = combined_gdf.geometry.centroid
-    centers_latlong = centers.to_crs('EPSG:4326')
-    combined_gdf['lat'] = centers_latlong.y
-    combined_gdf['long'] = centers_latlong.x
-
-
     file_id = f"{2011 - years_through_2011 + 1}_to_2011_{temporal_res}_{box_length_m}M"
-    filename = f"asurv_{file_id}"
+    filename = f"asurv_{file_id}_RawPts"
     os.makedirs(f"asurv/{file_id}", exist_ok=True)
-    # Make "README" of sorts for each dataset
-    with open(f'asurv/{file_id}/{filename}_EDA.txt', 'w') as file:
-        
-        file.write(f'This file contains basic information about the dataset {filename}.\n\n')
-        
-        # basic info
-        file.write(f"Is the square completed for time-space indices? {complete_idx_square}\n")
-        file.write(f"Is the geometry column present? {keep_geometry_col}\n")
+    asurv_gdf.to_csv(f"asurv/{file_id}/{filename}.csv")
 
-        # total number of boxes
-        file.write(f"TOTAL # OF BOXES: {len(combined_gdf['geometry_col'].unique())}\n")
-
-        print(combined_gdf.columns)
-        # total number of timesteps + how many years
-        file.write(f"TOTAL # OF TIMESTEPS: {len(combined_gdf[f'{DATE_NAME_TRANSLATOR[temporal_res]}_name'])}\n")
-
-        # min date, max date
-        file.write(f"MIN DATE: {np.sort(combined_gdf[f'{DATE_NAME_TRANSLATOR[temporal_res]}_name'])[0]}\n")
-        file.write(f"MAX DATE: {np.sort(combined_gdf[f'{DATE_NAME_TRANSLATOR[temporal_res]}_name'])[-1]}\n")
-
-        # total pct by counts
-        file.write("DISTRIBUTION OF COUNTS, WHOLE DATASET: ")
-        unique_vals, counts = np.unique(combined_gdf['counts'], return_counts=True)
-        unique_vals = unique_vals.astype(int)
-        counts = counts.astype(int)
-        file.write(str({val: ct for val, ct in zip(unique_vals, counts)}))
-        file.write("\n\n")
-
-        # unique timesteps
-        
-        file.write('UNIQUE TIMESTEPS AND THEIR COUNTS:\n')
-        
-        for tstep in np.sort(combined_gdf[f"{DATE_NAME_TRANSLATOR[temporal_res]}_name"].unique()):
-            filtered_gdf = combined_gdf[combined_gdf[f"{DATE_NAME_TRANSLATOR[temporal_res]}_name"] == tstep]
-            unique_vals, counts = np.unique(filtered_gdf['counts'], return_counts=True)
-            unique_vals = unique_vals.astype(int)
-            counts = counts.astype(int)
-            count_str = str({val: ct for val, ct in zip(unique_vals, counts)})
-            file.write(f"{tstep}: {count_str}\n")
-        
-        # counts 
-
-    if complete_idx_square:
-        tstep_ids = combined_gdf.index.get_level_values(f'{DATE_NAME_TRANSLATOR[temporal_res]}_id').unique()
-        geometries = combined_gdf.index.get_level_values('geometry').unique()
-        full_index = pd.MultiIndex.from_product([tstep_ids, geometries], names=[f'{DATE_NAME_TRANSLATOR[temporal_res]}_id', 'geometry'])
-        combined_gdf = combined_gdf.reindex(full_index)
-
-    if keep_geometry_col:
-        combined_gdf.drop(columns=['geometry_col']).to_csv(f'asurv/{file_id}/{filename}.csv')
-        gpd.GeoDataFrame(combined_gdf.droplevel(1)).to_file(f'asurv/{file_id}/{filename}_info')  # folder with GPD info
-    else:
-        combined_gdf.drop(columns=['geometry_col']).droplevel(1).to_csv(f'asurv/{file_id}/{filename}.csv')
-        gpd.GeoDataFrame(combined_gdf.droplevel(1)).to_file(f'asurv/{file_id}/{filename}_info')  # folder with GPD info
-
-        
+    points_to_boxes(asurv_gdf, study='asurv', temporal_res=temporal_res, box_length_m=box_length_m, 
+    keep_geometry_col=keep_geometry_col, complete_idx_square=complete_idx_square, years_through_2011=years_through_2011)
