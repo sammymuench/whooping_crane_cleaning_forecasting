@@ -5,6 +5,7 @@ import numpy as np
 import geopandas as gpd
 import os
 from points_to_boxes import points_to_boxes
+import argparse
 
 
 """
@@ -93,14 +94,21 @@ def read_gps(years_cut_from_back=0, temporal_res='weekly', keep_geometry_col=Tru
 
 
 if __name__ == '__main__':
+
+    # argparse, add arguments
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--years_cut_from_back', type=int, choices=range(0, 6), default=2, help='number of years to cut off back, as the gpss started to die')
+    parser.add_argument('--temporal_res', choices=['daily', 'weekly', 'biweekly', 'monthly'], default='weekly', help='Temporal resolution for timesteps')
+    parser.add_argument('--box_length_m', type=int, default=500, help='Length of box in meters')
+    parser.add_argument('--complete_idx_square', type=bool, default=True, help='this dataset does not come with the square completed, so can switch this to true to complete square. Default is false.')
+    parser.add_argument('--keep_geometry_col', type=bool, default=True, help='saves a lot of space if this is set to false. default is true. ')
     
-    # BEGIN PARAMETERS
-    box_length_m = 500
-    temporal_res = 'weekly'
-    years_cut_from_back = 4
-    keep_geometry_col = False  # Must keep this true for now so data can have crs
-    complete_idx_square = False  # I believe square is already completed for this dataset as all possible tsteps are included
-    # END PARAMETERS
+    args = parser.parse_args()
+    years_cut_from_back = args.years_cut_from_back
+    temporal_res = args.temporal_res
+    box_length_m = args.box_length_m
+    complete_idx_square = args.complete_idx_square
+    keep_geometry_col = args.keep_geometry_col
 
     # set gps gdf and CRS
     gps_gdf = read_gps(years_cut_from_back, temporal_res, keep_geometry_col)
