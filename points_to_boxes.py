@@ -87,6 +87,8 @@ def points_to_boxes(gdf, study, temporal_res, box_length_m, keep_geometry_col, c
         years_through_2011 = kwargs['years_through_2011']
     if 'years_cut_from_back' in kwargs.keys():
         years_cut_from_back = kwargs['years_cut_from_back']
+    if 'save_shp_folder' in kwargs.keys():
+        save_shp_folder = kwargs['save_shp_folder']
 
     all_gdfs = []
     for tstep in np.sort(gdf[f'{DATE_NAME_TRANSLATOR[temporal_res]}_name'].unique()):
@@ -201,7 +203,7 @@ def points_to_boxes(gdf, study, temporal_res, box_length_m, keep_geometry_col, c
 
     if keep_geometry_col:
         combined_gdf.drop(columns=['geometry_col']).to_csv(f'{study}/{file_id}/{filename}_final.csv')
-        gpd.GeoDataFrame(combined_gdf.droplevel(1)).to_file(f'{study}/{file_id}/{filename}_info')  # folder with GPD info
+        if save_shp_folder: gpd.GeoDataFrame(combined_gdf.droplevel(1)).to_file(f'{study}/{file_id}/{filename}_info')  # folder with GPD info
     else:
         combined_gdf.drop(columns=['geometry_col']).droplevel(1).to_csv(f'{study}/{file_id}/{filename}_final.csv')
-        gpd.GeoDataFrame(combined_gdf.droplevel(1)).to_file(f'{study}/{file_id}/{filename}_info')  # folder with GPD info
+        if save_shp_folder: gpd.GeoDataFrame(combined_gdf.droplevel(1)).to_file(f'{study}/{file_id}/{filename}_info')  # folder with GPD info

@@ -102,6 +102,7 @@ if __name__ == '__main__':
     parser.add_argument('--box_length_m', type=int, default=500, help='Length of box in meters')
     parser.add_argument('--complete_idx_square', type=bool, default=True, help='this dataset does not come with the square completed, so can switch this to true to complete square. Default is false.')
     parser.add_argument('--keep_geometry_col', type=bool, default=True, help='saves a lot of space if this is set to false. default is true. ')
+    parser.add_argument('--save_shp_folder', type=bool, default=False, help='whether to save shapefile info to file')
     
     args = parser.parse_args()
     years_cut_from_back = args.years_cut_from_back
@@ -109,6 +110,7 @@ if __name__ == '__main__':
     box_length_m = args.box_length_m
     complete_idx_square = args.complete_idx_square
     keep_geometry_col = args.keep_geometry_col
+    save_shp_folder = args.save_shp_folder
 
     # set gps gdf and CRS
     gps_gdf = read_gps(years_cut_from_back, temporal_res, keep_geometry_col)
@@ -119,4 +121,5 @@ if __name__ == '__main__':
     gps_gdf.to_csv(f"gps/{file_id}/{filename}.csv")
 
     points_to_boxes(gps_gdf, study='gps', temporal_res=temporal_res, box_length_m=box_length_m, 
-    keep_geometry_col=keep_geometry_col, complete_idx_square=complete_idx_square, years_cut_from_back=years_cut_from_back)
+    keep_geometry_col=keep_geometry_col, complete_idx_square=complete_idx_square, years_cut_from_back=years_cut_from_back, 
+    save_shp_folder=save_shp_folder)
