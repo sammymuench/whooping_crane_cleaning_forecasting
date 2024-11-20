@@ -101,7 +101,7 @@ if __name__ == '__main__':
     """
     # argparse, add arguments
     parser = argparse.ArgumentParser()
-    parser.add_argument('--years_through_2011', type=int, choices=range(10, 51), default=20, help='number of years before 2011 to use')
+    parser.add_argument('--years_through_2011', type=int, choices=range(10, 51), default=40, help='number of years before 2011 to use')
     parser.add_argument('--temporal_res', choices=['daily', 'weekly', 'biweekly', 'monthly'], default='weekly', help='Temporal resolution for timesteps')
     parser.add_argument('--box_length_m', type=int, default=500, help='Length of box in meters')
     parser.add_argument('--complete_idx_square', type=bool, default=True, help='this dataset does not come with the square completed, so can switch this to true to complete square. Default is false.')

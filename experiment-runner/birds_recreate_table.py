@@ -4,9 +4,9 @@ from itertools import product
 
 if __name__=='__main__':
 
-    Ks = [10, 25, 50, 75, 100, 200, 350]
+    Ks = [75, 200, 25]
     studies = ['asurv', 'gps']
-    for curr_K, curr_study in product(Ks, studies):
+    for curr_study, curr_K in product(studies, Ks):
         print('curr', curr_K, curr_study)
 
         parser = argparse.ArgumentParser(description='Recreate table rows for a given location')

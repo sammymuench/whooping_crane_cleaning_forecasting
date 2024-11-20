@@ -11,6 +11,33 @@ import pipelines
 from pipelines import LastYear, LastWYears_Average, PoissonRegr, LinearRegr, GBTRegr, GPRegr, ZeroPred
 from metrics import fast_bpr
 
+"""
+Framework to use opioid overdose prediction models on predicting whooping crane locations 
+on the Aransas Wildlife Preserve in Texas. 
+
+At the moment, the tasks have the following structure:
+    ASURV
+        Timescale: Weekly
+        Spatial Resolution: 500M boxes
+        How many sites: Around 15000
+            - Makes sense: 0.5 BPR on all-zero prediction for K=75 (15000 * 0.005 = 75)
+        Do trackings exist every week? NO
+        Train Years: [2009, 2010, 2011, 2012]
+        Valid Years: [2013, 2014]
+        Test Years: [2015, 2016]
+    GPS
+        Timescale: Weekly
+        Spatial Resolution: 500M boxes
+        How many sites: Around 15000
+            - Makes sense: 0.5 BPR on all-zero prediction for K=75 (15000 * 0.005 = 75)
+        Do trackings exist every week? NO
+        Train Years = range(1991, 2002),
+        Valid Years = range(2002, 2005),
+        Test Years = range(2005, 2008)
+
+
+"""
+
 
 def calc_score(model, x_df, y_df, metric, timestep_col='timestep', K=75):
     return calc_score_dict(model, x_df, y_df, '', timestep_col=timestep_col, K=K)[metric]
@@ -204,11 +231,6 @@ if __name__ == '__main__':
     else:
         train_start_year = min_start_year
 
-    # gps
-    train_years= [2009, 2010, 2011, 2012]
-    valid_years= [2013, 2014]
-    test_years= [2015, 2016]
-
     space_cols = ['lat', 'long']
     timestep_col = 'week_id'
     geography_col = 'geoid'
@@ -217,9 +239,6 @@ if __name__ == '__main__':
     tr, va, te = create_task.create_task(
         study = study,
         season_clip_method=bird_clip_method,
-        tr_years = train_years,
-        va_years = valid_years,
-        te_years = test_years,
         lag_tsteps = lag_tsteps,
         context_size = context_size_in_tsteps,
         geography_col = geography_col,
@@ -293,11 +312,7 @@ if __name__ == '__main__':
                                f"{te_score_dict['mae_mean']:.2f}, ({te_score_dict['mae_lower']:.2f}- {te_score_dict['mae_upper']:.2f})    " \
                                f"{te_score_dict['rmse_mean']:.2f}, ({te_score_dict['rmse_lower']:.2f}- {te_score_dict['rmse_upper']:.2f})    "
         
-        with open('results.txt', 'w') as f:
-            f.write(model.__name__)
-            f.write(K)
-            f.write(study)
+        with open('results.txt', 'a') as f:
+            f.write(f"{model.__name__}, K: {str(K)}, Study: {str(study)}")
             f.write(paper_result_strings)
-
-        # print(model.__name__)
-        # print(paper_result_strings)
+            f.write('\n')

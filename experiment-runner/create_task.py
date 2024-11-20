@@ -173,9 +173,9 @@ def create_task(
         te_years = [2015, 2016]
     elif study == 'asurv':
         filepath = '../asurv/1992_to_2011_weekly_500M/asurv_1992_to_2011_weekly_500M_final.csv'
-        tr_years = range(1992, 2000),
-        va_years = range(2000, 2004),
-        te_years = range(2004, 2008)
+        tr_years = range(1991, 2002),
+        va_years = range(2002, 2005),
+        te_years = range(2005, 2008)
 
     gps = pd.read_csv(filepath)
     gps = enum_geoid(gps)
@@ -219,7 +219,6 @@ def create_task(
         context_size, lag_tsteps,
         year_col=year_col, timestep_col=timestep_col, outcome_col=outcome_col)
     
-
     va_tup = create_context_df(x_df, y_df, info_df,
         va_years[0], va_years[-1],
         context_size, lag_tsteps,
