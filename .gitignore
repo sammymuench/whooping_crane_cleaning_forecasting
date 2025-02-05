@@ -1,5 +1,9 @@
 # gitignore to ignore data
 
+experiment-runner
+data_dir
+__pycache__
+
 # Ignore raw data
 raw-data/asurv_1950_to_2011
 raw-data/WHCR_locations_gps.csv
@@ -8,8 +12,6 @@ raw-data/WHCR_locations_gps.csv
 asurv/*
 gps/*
 
-# Always ignore pycache
-__pycache__
-
 # Ignore any files that have testing in them
 tester.ipynb
+save_files_torch_exps

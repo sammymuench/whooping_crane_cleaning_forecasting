@@ -4,11 +4,17 @@ Sammy Muench
 PROJECT TITLE: Spatiotemporal Predictions of Aransas Whooping Crane Population using
 flyover data and GPS data
 
-The purpose of this directory is to generate spatiotemporal maps of the aransas whooping crane population, grouped by boxes with preset sizes and preset temporal binning.
+The purpose of this directory is to generate spatiotemporal maps of the aransas whooping crane population, grouped by boxes with preset sizes and preset temporal binning. This repo is essentially an automated data cleaner that takes a raw dataset (not included in this repo for copyright reasons, but can be found at sources below).
 
 Sources: 
-- asurv: https://data.amerigeoss.org/nl/dataset/observations-of-whooping-cranes-during-winter-aerial-surveys-19502011
-- gps: https://www.sciencebase.gov/catalog/item/5ea3071582cefae35a19349a
+- asurv: Taylor, L. N., Ketzler, L. P., D., R., Strobel, B. N., Met-
+zger, K. L., and Butler, M. J. Observations of whooping
+cranes during winter aerial surveys: 1950–2011. Techni-
+cal report, Aransas National Wildlife Refuge, U.S. Fish
+and Wildlife Service, Austwell, Texas, USA, 2015. URL
+http://dx.doi.org/10.7944/W3RP4B.
+
+- gps:  Pearse, A.T., Brandt, D.A., Baasch, D.M., Bidwell, M.T., Conkin, J.A., Harner, M.J., Harrell, W., and Metzger, K.L., 2020, Location data for whooping cranes of the Aransas-Wood Buffalo Population, 2009-2018: U.S. Geological Survey data release, https://doi.org/10.5066/P9Y8KZJ9. 
 
 Directories & Files:
 - raw-data: contains all raw data listed in sources

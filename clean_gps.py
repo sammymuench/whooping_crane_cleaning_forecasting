@@ -98,7 +98,7 @@ if __name__ == '__main__':
     # argparse, add arguments
     parser = argparse.ArgumentParser()
     parser.add_argument('--years_cut_from_back', type=int, choices=range(0, 6), default=2, help='number of years to cut off back, as the gpss started to die')
-    parser.add_argument('--temporal_res', choices=['daily', 'weekly', 'biweekly', 'monthly'], default='weekly', help='Temporal resolution for timesteps')
+    parser.add_argument('--temporal_res', choices=['weekly'], default='weekly', help='Temporal resolution for timesteps')
     parser.add_argument('--box_length_m', type=int, default=500, help='Length of box in meters')
     parser.add_argument('--complete_idx_square', type=bool, default=True, help='this dataset does not come with the square completed, so can switch this to true to complete square. Default is false.')
     parser.add_argument('--keep_geometry_col', type=bool, default=True, help='saves a lot of space if this is set to false. default is true. ')
